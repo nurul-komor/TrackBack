@@ -1,0 +1,4 @@
+{
+  "_comment": "Download your google-services.json from Firebase Console > Project Settings > Android > Your App",
+  "_instructions": "1. Go to https://console.firebase.google.com, 2. Create/open your project, 3. Add Android app with package name 'com.trackback.campus', 4. Download google-services.json and place it here (rename to google-services.json)"
+}
