@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Image, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { Text, TextInput, Button, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
@@ -9,23 +9,44 @@ import { COLORS } from '../../theme/theme';
 
 WebBrowser.maybeCompleteAuthSession();
 
+// Isolated so the hook only mounts when all required client IDs are present.
+// Google.useAuthRequest throws at render time on Android if androidClientId is undefined.
+const GoogleSignInButton = ({ loading, onSignIn }: { loading: boolean; onSignIn: (idToken: string) => void }) => {
+  const [, response, promptAsync] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  });
+
+  React.useEffect(() => {
+    if (response?.type === 'success') {
+      onSignIn(response.params.id_token);
+    }
+  }, [response]);
+
+  return (
+    <Button
+      mode="outlined"
+      icon="google"
+      onPress={() => promptAsync()}
+      disabled={loading}
+      style={styles.googleBtn}
+      textColor={COLORS.primary}
+    >
+      Continue with Google
+    </Button>
+  );
+};
+
+const googleSupported =
+  !!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
+  (Platform.OS !== 'android' || !!process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID);
+
 export const LoginScreen = () => {
   const navigation = useNavigation<any>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [secure, setSecure] = useState(true);
-
-  const [, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  });
-
-  React.useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      const { id_token } = googleResponse.params;
-      handleGoogleSignIn(id_token);
-    }
-  }, [googleResponse]);
 
   const handleGoogleSignIn = async (idToken: string) => {
     try {
@@ -83,18 +104,12 @@ export const LoginScreen = () => {
         Sign In
       </Button>
 
-      <Divider style={styles.divider} />
-
-      <Button
-        mode="outlined"
-        icon="google"
-        onPress={() => promptGoogleAsync()}
-        disabled={loading}
-        style={styles.googleBtn}
-        textColor={COLORS.primary}
-      >
-        Continue with Google
-      </Button>
+      {googleSupported && (
+        <>
+          <Divider style={styles.divider} />
+          <GoogleSignInButton loading={loading} onSignIn={handleGoogleSignIn} />
+        </>
+      )}
 
       <View style={styles.footer}>
         <Text variant="bodyMedium">Don't have an account? </Text>

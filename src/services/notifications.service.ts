@@ -14,27 +14,36 @@ Notifications.setNotificationHandler({
   }),
 });
 
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
 export const registerForPushNotifications = async (userId: string): Promise<void> => {
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let finalStatus = existing;
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+  // Remote push notifications are not supported in Expo Go since SDK 53
+  if (isExpoGo) return;
+
+  try {
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    let finalStatus = existing;
+    if (existing !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') return;
+
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const token = await Notifications.getExpoPushTokenAsync({ projectId });
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+      });
+    }
+
+    await updateDoc(doc(db, 'users', userId), { fcmToken: token.data });
+  } catch {
+    // Silently skip — push notifications are a non-critical feature
   }
-  if (finalStatus !== 'granted') return;
-
-  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-  const token = await Notifications.getExpoPushTokenAsync({ projectId });
-
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-    });
-  }
-
-  await updateDoc(doc(db, 'users', userId), { fcmToken: token.data });
 };
 
 export const sendPushNotification = async (
