@@ -35,6 +35,11 @@
       ],
       "expo-web-browser"
     ],
-    "scheme": "trackback"
+    "scheme": "trackback",
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
   }
 }

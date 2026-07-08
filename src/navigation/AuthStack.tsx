@@ -4,14 +4,12 @@ import { SplashScreen } from '../screens/auth/SplashScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
-import { COLORS } from '../theme/theme';
-
 const Stack = createStackNavigator();
 
 export const AuthStack = () => (
   <Stack.Navigator
     initialRouteName="Splash"
-    screenOptions={{ headerShown: false, cardStyle: { backgroundColor: COLORS.background } }}
+    screenOptions={{ headerShown: false }}
   >
     <Stack.Screen name="Splash" component={SplashScreen} />
     <Stack.Screen name="Login" component={LoginScreen} />

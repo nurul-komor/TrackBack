@@ -4,23 +4,36 @@ import { db } from '../config/firebase';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+const notificationsEnabled = process.env.EXPO_PUBLIC_NOTIFICATIONS_ENABLED === 'true';
+
+if (notificationsEnabled) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 export const registerForPushNotifications = async (userId: string): Promise<void> => {
-  // Remote push notifications are not supported in Expo Go since SDK 53
+  if (!notificationsEnabled) return;
+  // Remote push notifications require a development build on Android (SDK 53+)
   if (isExpoGo) return;
 
   try {
+    // Android 13+: channel must exist before the permission prompt appears
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+      });
+    }
+
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
     if (existing !== 'granted') {
@@ -31,14 +44,6 @@ export const registerForPushNotifications = async (userId: string): Promise<void
 
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
     const token = await Notifications.getExpoPushTokenAsync({ projectId });
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-      });
-    }
 
     await updateDoc(doc(db, 'users', userId), { fcmToken: token.data });
   } catch {
@@ -52,7 +57,7 @@ export const sendPushNotification = async (
   body: string,
   data?: Record<string, any>,
 ): Promise<void> => {
-  if (!expoPushToken) return;
+  if (!notificationsEnabled || !expoPushToken) return;
   await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

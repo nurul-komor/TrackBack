@@ -8,12 +8,14 @@ interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: User | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   userProfile: null,
   loading: true,
+  refreshUser: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -46,8 +48,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return unsubscribe;
   }, []);
 
+  const refreshUser = async () => {
+    if (!auth.currentUser) return;
+    await auth.currentUser.reload();
+    // Firebase mutates auth.currentUser in-place, so we need a new reference
+    // to trigger React re-renders in consuming components
+    setUser(
+      Object.create(
+        Object.getPrototypeOf(auth.currentUser),
+        Object.getOwnPropertyDescriptors(auth.currentUser),
+      ) as FirebaseUser,
+    );
+    const snap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+    if (snap.exists()) setUserProfile(snap.data() as User);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

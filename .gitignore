@@ -12,3 +12,4 @@ web-build/
 .env
 google-services.json
 GoogleService-Info.plist
+scripts/serviceAccountKey.json

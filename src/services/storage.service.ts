@@ -1,8 +1,8 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../config/firebase';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { SaveFormat } from 'expo-image-manipulator';
-import { Platform } from 'react-native';
+
+const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
 export const uploadItemImage = async (
   localUri: string,
@@ -15,19 +15,29 @@ export const uploadItemImage = async (
     { compress: 0.75, format: SaveFormat.JPEG },
   );
 
-  const response = await fetch(compressed.uri);
-  const blob = await response.blob();
-  const filename = `${itemId}_${index}_${Date.now()}.jpg`;
-  const storageRef = ref(storage, `items/${itemId}/${filename}`);
-  await uploadBytes(storageRef, blob);
-  return getDownloadURL(storageRef);
+  const formData = new FormData();
+  formData.append('file', {
+    uri: compressed.uri,
+    type: 'image/jpeg',
+    name: `${itemId}_${index}_${Date.now()}.jpg`,
+  } as any);
+  formData.append('upload_preset', UPLOAD_PRESET!);
+  formData.append('folder', `trackback/items/${itemId}`);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    { method: 'POST', body: formData },
+  );
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || 'Image upload failed');
+  }
+
+  const data = await response.json();
+  return data.secure_url as string;
 };
 
-export const deleteItemImage = async (url: string): Promise<void> => {
-  try {
-    const storageRef = ref(storage, url);
-    await deleteObject(storageRef);
-  } catch {
-    // ignore if already deleted
-  }
-};
+// Deletion from a mobile client requires a signed server request.
+// Unused images can be managed from the Cloudinary console.
+export const deleteItemImage = async (_url: string): Promise<void> => {};

@@ -1,6 +1,6 @@
 import {
   collection, addDoc, updateDoc, deleteDoc, doc,
-  query, where, orderBy, getDocs, serverTimestamp, Timestamp,
+  query, where, orderBy, getDocs, serverTimestamp, Timestamp, writeBatch,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Item, ItemType, ItemStatus } from '../types';
@@ -17,7 +17,6 @@ export const createItem = async (
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  await updateDoc(ref, { id: ref.id });
   return ref.id;
 };
 
@@ -54,3 +53,16 @@ export const resolveItem = (itemId: string) =>
 
 export const deleteItem = (itemId: string) =>
   deleteDoc(doc(db, 'items', itemId));
+
+export const updateUserItemsProfile = async (
+  userId: string,
+  update: { userName?: string; userPhoto?: string },
+): Promise<void> => {
+  const snap = await getDocs(
+    query(collection(db, 'items'), where('userId', '==', userId)),
+  );
+  if (snap.empty) return;
+  const batch = writeBatch(db);
+  snap.docs.forEach((d) => batch.update(d.ref, update));
+  await batch.commit();
+};

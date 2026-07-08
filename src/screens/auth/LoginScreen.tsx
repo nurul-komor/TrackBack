@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
-import { View, Image, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
-import { Text, TextInput, Button, Divider } from 'react-native-paper';
+import {
+  View,
+  Image,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Text,
+} from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { loginWithEmail, signInWithGoogle } from '../../services/auth.service';
-import { COLORS } from '../../theme/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -24,16 +35,15 @@ const GoogleSignInButton = ({ loading, onSignIn }: { loading: boolean; onSignIn:
   }, [response]);
 
   return (
-    <Button
-      mode="outlined"
-      icon="google"
+    <TouchableOpacity
+      style={styles.googleBtn}
       onPress={() => promptAsync()}
       disabled={loading}
-      style={styles.googleBtn}
-      textColor={COLORS.primary}
+      activeOpacity={0.7}
     >
-      Continue with Google
-    </Button>
+      <MaterialCommunityIcons name="google" size={20} color="#1C1C1E" style={{ marginRight: 8 }} />
+      <Text style={styles.googleBtnText}>Continue with Google</Text>
+    </TouchableOpacity>
   );
 };
 
@@ -43,6 +53,7 @@ const googleSupported =
 
 export const LoginScreen = () => {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,64 +83,231 @@ export const LoginScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Image source={require('../../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-      <Text variant="headlineMedium" style={styles.title}>Welcome Back</Text>
-      <Text variant="bodyMedium" style={styles.subtitle}>Sign in to continue</Text>
+    <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+      <ScrollView
+        contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 24 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Logo Area */}
+        <View style={[styles.logoArea, { paddingTop: insets.top + 24 }]}>
+          <Image source={require('../../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+        </View>
 
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={styles.input}
-      />
-      <TextInput
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        mode="outlined"
-        secureTextEntry={secure}
-        right={<TextInput.Icon icon={secure ? 'eye' : 'eye-off'} onPress={() => setSecure(!secure)} />}
-        style={styles.input}
-      />
+        {/* White Form Card */}
+        <View style={styles.formCard}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to continue</Text>
 
-      <Button mode="text" onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotBtn}>
-        Forgot Password?
-      </Button>
+          <Text style={styles.inputLabel}>Email</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              placeholder="your@email.com"
+              placeholderTextColor="#8E8E93"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.input}
+            />
+          </View>
 
-      <Button mode="contained" onPress={handleLogin} loading={loading} disabled={loading} style={styles.btn}>
-        Sign In
-      </Button>
+          <Text style={styles.inputLabel}>Password</Text>
+          <View style={[styles.inputWrapper, styles.passwordWrapper]}>
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#8E8E93"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={secure}
+              style={[styles.input, { flex: 1 }]}
+            />
+            <TouchableOpacity onPress={() => setSecure(!secure)} style={styles.eyeBtn}>
+              <MaterialCommunityIcons
+                name={secure ? 'eye-outline' : 'eye-off-outline'}
+                size={20}
+                color="#8E8E93"
+              />
+            </TouchableOpacity>
+          </View>
 
-      {googleSupported && (
-        <>
-          <Divider style={styles.divider} />
-          <GoogleSignInButton loading={loading} onSignIn={handleGoogleSignIn} />
-        </>
-      )}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}
+            style={styles.forgotBtn}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
-      <View style={styles.footer}>
-        <Text variant="bodyMedium">Don't have an account? </Text>
-        <Button mode="text" compact onPress={() => navigation.navigate('Register')}>
-          Sign Up
-        </Button>
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            style={[styles.signInBtn, loading && styles.signInBtnDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.signInBtnText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          {googleSupported && (
+            <>
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or</Text>
+                <View style={styles.dividerLine} />
+              </View>
+              <GoogleSignInButton loading={loading} onSignIn={handleGoogleSignIn} />
+            </>
+          )}
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')} activeOpacity={0.7}>
+              <Text style={styles.footerLink}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: COLORS.background, padding: 24, alignItems: 'center' },
-  logo: { width: 120, height: 120, marginTop: 40, marginBottom: 16 },
-  title: { color: COLORS.primary, fontWeight: 'bold' },
-  subtitle: { color: COLORS.textSecondary, marginBottom: 24 },
-  input: { width: '100%', marginBottom: 12 },
-  forgotBtn: { alignSelf: 'flex-end', marginBottom: 8 },
-  btn: { width: '100%', marginBottom: 16, paddingVertical: 4 },
-  divider: { width: '100%', marginVertical: 16 },
-  googleBtn: { width: '100%', borderColor: COLORS.primary },
-  footer: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  logoArea: {
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    marginHorizontal: 16,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1C1C1E',
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#8E8E93',
+    marginBottom: 24,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  inputWrapper: {
+    backgroundColor: '#E5E5EA',
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 14,
+  },
+  input: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#1C1C1E',
+  },
+  eyeBtn: {
+    padding: 4,
+  },
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+    marginTop: 4,
+  },
+  forgotText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  signInBtn: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  signInBtnDisabled: {
+    opacity: 0.6,
+  },
+  signInBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 0.5,
+    backgroundColor: '#E5E5EA',
+  },
+  dividerText: {
+    color: '#8E8E93',
+    fontSize: 13,
+    paddingHorizontal: 12,
+  },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  googleBtnText: {
+    color: '#1C1C1E',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  footerLink: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '700',
+  },
 });

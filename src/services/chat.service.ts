@@ -36,15 +36,14 @@ export const sendMessage = async (
   conversationId: string,
   senderId: string,
   text: string,
+  imageUrl?: string,
 ): Promise<void> => {
-  await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
-    text,
-    senderId,
-    createdAt: serverTimestamp(),
-    read: false,
-  });
+  const payload: Record<string, any> = { text, senderId, createdAt: serverTimestamp(), read: false };
+  if (imageUrl) payload.imageUrl = imageUrl;
+
+  await addDoc(collection(db, 'conversations', conversationId, 'messages'), payload);
   await updateDoc(doc(db, 'conversations', conversationId), {
-    lastMessage: text,
+    lastMessage: imageUrl ? '📷 Photo' : text,
     lastMessageAt: serverTimestamp(),
   });
 };

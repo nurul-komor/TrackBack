@@ -10,9 +10,11 @@
     "babel-preset-expo": "^54.0.10",
     "expo": "^54.0.0",
     "expo-auth-session": "~7.0.11",
+    "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",
     "expo-image-manipulator": "~14.0.8",
     "expo-image-picker": "~17.0.11",
+    "expo-linear-gradient": "~15.0.8",
     "expo-notifications": "~0.32.17",
     "expo-status-bar": "~3.0.9",
     "expo-web-browser": "~15.0.11",
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
+    "firebase-admin": "^13.10.0",
     "typescript": "~5.9.2"
   },
   "scripts": {

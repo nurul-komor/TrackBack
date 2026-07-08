@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrackBack — UI Direction</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: #F2F2F7;
+    color: #1C1C1E;
+    padding: 24px 16px 40px;
+  }
+  h1 { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #6B6B6F; font-size: 14px; margin-bottom: 28px; }
+
+  .cards { display: flex; flex-direction: column; gap: 20px; max-width: 900px; margin: 0 auto; }
+
+  .card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+  .card.selected { border-color: #007AFF; }
+  .card.selected .card-label { background: #007AFF; color: white; }
+
+  .card-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: #F2F2F7;
+    color: #6B6B6F;
+    padding: 5px 14px;
+    border-radius: 0 0 12px 0;
+  }
+
+  .card-inner { padding: 0 20px 20px; }
+  .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .card-desc { font-size: 13px; color: #6B6B6F; margin-bottom: 18px; line-height: 1.5; }
+
+  /* ── PHONE MOCKUP ── */
+  .phone {
+    width: 180px;
+    height: 360px;
+    border-radius: 36px;
+    border: 8px solid #1C1C1E;
+    overflow: hidden;
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.1);
+  }
+  .phone-notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 70px; height: 22px; background: #1C1C1E;
+    border-radius: 0 0 16px 16px; z-index: 10;
+  }
+  .phone-screen { width: 100%; height: 100%; overflow: hidden; }
+
+  .phones-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .phone-caption {
+    font-size: 11px; color: #6B6B6F; text-align: center;
+    margin-top: 6px; width: 180px; display: inline-block;
+  }
+  .phone-wrap { display: inline-flex; flex-direction: column; align-items: center; }
+
+  /* ──────────────────────────────────────────
+     OPTION A: Clean iOS Light
+  ────────────────────────────────────────── */
+  .a-screen {
+    background: #F2F2F7;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 9px;
+  }
+  .a-header {
+    background: rgba(242,242,247,0.85);
+    backdrop-filter: blur(20px);
+    padding: 28px 10px 10px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.1);
+  }
+  .a-header-title { font-size: 22px; font-weight: 800; color: #1C1C1E; line-height: 1; }
+  .a-header-sub { font-size: 8px; color: #8E8E93; margin-bottom: 8px; }
+  .a-search {
+    background: rgba(118,118,128,0.12);
+    border-radius: 10px;
+    height: 26px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 8px;
+    color: #8E8E93; font-size: 8px;
+  }
+  .a-tabs {
+    display: flex; gap: 6px; padding: 8px 10px;
+    background: rgba(242,242,247,0.85);
+  }
+  .a-tab {
+    flex: 1; text-align: center; padding: 5px 0;
+    background: rgba(118,118,128,0.12); border-radius: 8px;
+    font-size: 8px; font-weight: 600; color: #8E8E93;
+  }
+  .a-tab.active { background: #007AFF; color: white; }
+  .a-list { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .a-card {
+    background: white; border-radius: 14px;
+    display: flex; gap: 8px;
+    padding: 8px; align-items: center;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  }
+  .a-img { width: 40px; height: 40px; border-radius: 10px; background: #E8E8ED; flex-shrink: 0; overflow: hidden; }
+  .a-img-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .a-badge {
+    font-size: 7px; font-weight: 700;
+    padding: 2px 5px; border-radius: 4px;
+    display: inline-block; margin-bottom: 3px;
+  }
+  .badge-lost { background: #FF3B30; color: white; }
+  .badge-found { background: #34C759; color: white; }
+  .a-item-title { font-size: 9px; font-weight: 600; color: #1C1C1E; line-height: 1.2; }
+  .a-item-loc { font-size: 7px; color: #8E8E93; margin-top: 2px; }
+  .a-bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(242,242,247,0.92);
+    backdrop-filter: blur(20px);
+    border-top: 0.5px solid rgba(0,0,0,0.1);
+    padding: 8px 0 14px;
+    display: flex; justify-content: space-around;
+  }
+  .a-tab-icon { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .a-tab-icon .icon { font-size: 14px; }
+  .a-tab-icon .lbl { font-size: 6px; color: #8E8E93; }
+  .a-tab-icon.active .icon { filter: none; }
+  .a-tab-icon.active .lbl { color: #007AFF; }
+
+  /* ──────────────────────────────────────────
+     OPTION B: Dark Premium
+  ────────────────────────────────────────── */
+  .b-screen {
+    background: #000000;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+  }
+  .b-header {
+    background: linear-gradient(180deg, #1C1C1E 0%, rgba(28,28,30,0.9) 100%);
+    padding: 28px 10px 10px;
+  }
+  .b-title { font-size: 22px; font-weight: 800; color: white; }
+  .b-sub { font-size: 7px; color: #636366; margin-bottom: 8px; }
+  .b-search {
+    background: #2C2C2E; border-radius: 10px; height: 26px;
+    display: flex; align-items: center; padding: 0 8px;
+    color: #636366; font-size: 8px; gap: 5px;
+  }
+  .b-pills {
+    display: flex; gap: 6px; padding: 8px 10px;
+    background: #000;
+  }
+  .b-pill {
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 8px; font-weight: 600; color: #636366;
+    border: 1px solid #2C2C2E;
+  }
+  .b-pill.active { background: #6E6EFF; color: white; border-color: #6E6EFF; }
+  .b-list { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .b-card {
+    background: #1C1C1E; border-radius: 14px;
+    display: flex; gap: 8px; padding: 8px; align-items: center;
+  }
+  .b-img { width: 44px; height: 44px; border-radius: 10px; background: #2C2C2E; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .b-badge {
+    font-size: 7px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
+    display: inline-block; margin-bottom: 3px;
+  }
+  .b-badge.lost { background: rgba(255,59,48,0.2); color: #FF453A; }
+  .b-badge.found { background: rgba(52,199,89,0.2); color: #30D158; }
+  .b-item-title { font-size: 9px; font-weight: 600; color: #FFFFFF; line-height: 1.2; }
+  .b-item-loc { font-size: 7px; color: #636366; margin-top: 2px; }
+  .b-bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(28,28,30,0.92); backdrop-filter: blur(20px);
+    border-top: 0.5px solid rgba(255,255,255,0.08);
+    padding: 8px 0 14px;
+    display: flex; justify-content: space-around;
+  }
+  .b-tab-icon { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .b-tab-icon .icon { font-size: 14px; opacity: 0.4; }
+  .b-tab-icon.active .icon { opacity: 1; }
+  .b-tab-icon .lbl { font-size: 6px; color: #636366; }
+  .b-tab-icon.active .lbl { color: #6E6EFF; }
+
+  /* ──────────────────────────────────────────
+     OPTION C: Warm Gradient
+  ────────────────────────────────────────── */
+  .c-screen {
+    background: #FAFAFA;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+  }
+  .c-header {
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    padding: 28px 10px 14px;
+    border-radius: 0 0 20px 20px;
+  }
+  .c-title { font-size: 20px; font-weight: 800; color: white; }
+  .c-sub { font-size: 7px; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+  .c-search {
+    background: rgba(255,255,255,0.2); border-radius: 10px; height: 26px;
+    display: flex; align-items: center; padding: 0 8px;
+    color: rgba(255,255,255,0.7); font-size: 8px; gap: 5px;
+  }
+  .c-cats {
+    display: flex; gap: 6px; padding: 10px 10px 4px; overflow: hidden;
+  }
+  .c-cat {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .c-cat-icon {
+    width: 32px; height: 32px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .c-cat-lbl { font-size: 6px; color: #6B6B6F; }
+  .c-list { padding: 4px 8px 60px; display: flex; flex-direction: column; gap: 8px; }
+  .c-card {
+    background: white; border-radius: 16px;
+    display: flex; gap: 8px; padding: 8px; align-items: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .c-img { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .c-badge {
+    font-size: 7px; font-weight: 700; padding: 2px 5px; border-radius: 20px;
+    display: inline-block; margin-bottom: 3px;
+  }
+  .c-badge.lost { background: #FF3B30; color: white; }
+  .c-badge.found { background: #34C759; color: white; }
+  .c-item-title { font-size: 9px; font-weight: 600; color: #1C1C1E; }
+  .c-item-loc { font-size: 7px; color: #8E8E93; margin-top: 2px; }
+  .c-bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: white;
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+    padding: 8px 0 14px;
+    display: flex; justify-content: space-around;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .c-tab-icon { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .c-tab-icon .icon { font-size: 14px; opacity: 0.35; }
+  .c-tab-icon.active .icon { opacity: 1; }
+  .c-tab-icon .lbl { font-size: 6px; color: #8E8E93; }
+  .c-tab-icon.active .lbl { color: #667EEA; }
+  .c-fab {
+    width: 36px; height: 36px; border-radius: 18px;
+    background: linear-gradient(135deg, #667EEA, #764BA2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: white; margin-top: -8px;
+    box-shadow: 0 4px 14px rgba(102,126,234,0.5);
+  }
+</style>
+</head>
+<body>
+<h1>TrackBack — Design Direction</h1>
+<p class="subtitle">Three iPhone-inspired UI directions. Click a card to select your preferred direction.</p>
+
+<div class="cards">
+
+  <!-- OPTION A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">Option A</div>
+    <div class="card-inner">
+      <div class="card-title">Clean iOS Light</div>
+      <div class="card-desc">Pure white cards, translucent navigation bar, SF-style large bold titles. Familiar, trusted iOS feel — think Apple Maps or iOS Settings. High readability, minimal color.</div>
+
+      <div class="phones-row">
+        <!-- Feed screen -->
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="a-screen">
+              <div class="a-header">
+                <div class="a-header-title">TrackBack</div>
+                <div class="a-header-sub">Nearby reports</div>
+                <div class="a-search">
+                  <span>🔍</span><span>Search items...</span>
+                </div>
+              </div>
+              <div class="a-tabs">
+                <div class="a-tab active">Lost</div>
+                <div class="a-tab">Found</div>
+              </div>
+              <div class="a-list">
+                <div class="a-card">
+                  <div class="a-img"><div class="a-img-bg">👜</div></div>
+                  <div>
+                    <span class="a-badge badge-lost">LOST</span>
+                    <div class="a-item-title">Black Leather Wallet</div>
+                    <div class="a-item-loc">📍 Central Park · 2h ago</div>
+                  </div>
+                </div>
+                <div class="a-card">
+                  <div class="a-img"><div class="a-img-bg">🔑</div></div>
+                  <div>
+                    <span class="a-badge badge-found">FOUND</span>
+                    <div class="a-item-title">Keys with Honda fob</div>
+                    <div class="a-item-loc">📍 Main St · 5h ago</div>
+                  </div>
+                </div>
+                <div class="a-card">
+                  <div class="a-img"><div class="a-img-bg">📱</div></div>
+                  <div>
+                    <span class="a-badge badge-lost">LOST</span>
+                    <div class="a-item-title">iPhone 15 Pro Max</div>
+                    <div class="a-item-loc">📍 Coffee Bliss · 1d ago</div>
+                  </div>
+                </div>
+              </div>
+              <div class="a-bottom-bar">
+                <div class="a-tab-icon active">
+                  <span class="icon">🏠</span>
+                  <span class="lbl">Home</span>
+                </div>
+                <div class="a-tab-icon">
+                  <span class="icon">➕</span>
+                  <span class="lbl">Post</span>
+                </div>
+                <div class="a-tab-icon">
+                  <span class="icon">💬</span>
+                  <span class="lbl">Messages</span>
+                </div>
+                <div class="a-tab-icon">
+                  <span class="icon">👤</span>
+                  <span class="lbl">Profile</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="phone-caption">Feed</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; font-size:12px; color:#6B6B6F;">
+        <span>🎨 White + #007AFF blue</span>
+        <span>📝 SF Pro bold titles</span>
+        <span>🌫️ Frosted glass nav</span>
+        <span>🟥🟩 Red/green status badges</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">Option B</div>
+    <div class="card-inner">
+      <div class="card-title">Dark Premium</div>
+      <div class="card-desc">True black background like OLED iPhone, elevated cards in charcoal, vibrant purple/blue accents. Premium, modern, easy on eyes at night. Think Spotify or Apple TV.</div>
+
+      <div class="phones-row">
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="b-screen">
+              <div class="b-header">
+                <div class="b-title">TrackBack</div>
+                <div class="b-sub">Nearby reports</div>
+                <div class="b-search">
+                  <span>🔍</span><span>Search items...</span>
+                </div>
+              </div>
+              <div class="b-pills">
+                <div class="b-pill active">All</div>
+                <div class="b-pill">Lost</div>
+                <div class="b-pill">Found</div>
+              </div>
+              <div class="b-list">
+                <div class="b-card">
+                  <div class="b-img">👜</div>
+                  <div>
+                    <span class="b-badge lost">LOST</span>
+                    <div class="b-item-title">Black Leather Wallet</div>
+                    <div class="b-item-loc">📍 Central Park · 2h ago</div>
+                  </div>
+                </div>
+                <div class="b-card">
+                  <div class="b-img">🔑</div>
+                  <div>
+                    <span class="b-badge found">FOUND</span>
+                    <div class="b-item-title">Keys with Honda fob</div>
+                    <div class="b-item-loc">📍 Main St · 5h ago</div>
+                  </div>
+                </div>
+                <div class="b-card">
+                  <div class="b-img">📱</div>
+                  <div>
+                    <span class="b-badge lost">LOST</span>
+                    <div class="b-item-title">iPhone 15 Pro Max</div>
+                    <div class="b-item-loc">📍 Coffee Bliss · 1d ago</div>
+                  </div>
+                </div>
+              </div>
+              <div class="b-bottom-bar">
+                <div class="b-tab-icon active">
+                  <span class="icon">🏠</span>
+                  <span class="lbl" style="color:#6E6EFF">Home</span>
+                </div>
+                <div class="b-tab-icon">
+                  <span class="icon">➕</span>
+                  <span class="lbl">Post</span>
+                </div>
+                <div class="b-tab-icon">
+                  <span class="icon">💬</span>
+                  <span class="lbl">Messages</span>
+                </div>
+                <div class="b-tab-icon">
+                  <span class="icon">👤</span>
+                  <span class="lbl">Profile</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="phone-caption">Feed</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; font-size:12px; color:#6B6B6F;">
+        <span>🎨 #000 + #6E6EFF purple</span>
+        <span>🌃 OLED true black</span>
+        <span>✨ Elevated charcoal cards</span>
+        <span>🔴🟢 Muted neon badges</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">Option C</div>
+    <div class="card-inner">
+      <div class="card-title">Warm Gradient (Recommended)</div>
+      <div class="card-desc">Light background with a rich purple-to-violet gradient header. Category pills, floating action button, and warm card shadows. Matches the Dribbble inspirations closest — modern, vibrant, and friendly.</div>
+
+      <div class="phones-row">
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="c-screen">
+              <div class="c-header">
+                <div class="c-title">TrackBack</div>
+                <div class="c-sub">Nearby reports</div>
+                <div class="c-search">
+                  <span>🔍</span><span>Search items...</span>
+                </div>
+              </div>
+              <div class="c-cats">
+                <div class="c-cat">
+                  <div class="c-cat-icon" style="background:#FFF0E6">👜</div>
+                  <span class="c-cat-lbl">Bags</span>
+                </div>
+                <div class="c-cat">
+                  <div class="c-cat-icon" style="background:#E8F4FD">📱</div>
+                  <span class="c-cat-lbl">Phones</span>
+                </div>
+                <div class="c-cat">
+                  <div class="c-cat-icon" style="background:#F0FFF0">🔑</div>
+                  <span class="c-cat-lbl">Keys</span>
+                </div>
+                <div class="c-cat">
+                  <div class="c-cat-icon" style="background:#FFF0F5">💳</div>
+                  <span class="c-cat-lbl">Cards</span>
+                </div>
+              </div>
+              <div style="padding: 0 10px 4px; font-size:8px; font-weight:700; color:#1C1C1E;">Recent Reports</div>
+              <div class="c-list">
+                <div class="c-card">
+                  <div class="c-img" style="background:#FFF0E6">👜</div>
+                  <div>
+                    <span class="c-badge lost">LOST</span>
+                    <div class="c-item-title">Black Leather Wallet</div>
+                    <div class="c-item-loc">📍 Central Park · 2h ago</div>
+                  </div>
+                </div>
+                <div class="c-card">
+                  <div class="c-img" style="background:#F0FFF0">🔑</div>
+                  <div>
+                    <span class="c-badge found">FOUND</span>
+                    <div class="c-item-title">Keys with Honda fob</div>
+                    <div class="c-item-loc">📍 Main St · 5h ago</div>
+                  </div>
+                </div>
+              </div>
+              <div class="c-bottom-bar">
+                <div class="c-tab-icon active">
+                  <span class="icon">🏠</span>
+                  <span class="lbl" style="color:#667EEA">Home</span>
+                </div>
+                <div class="c-tab-icon">
+                  <div class="c-fab">➕</div>
+                </div>
+                <div class="c-tab-icon">
+                  <span class="icon">💬</span>
+                  <span class="lbl">Messages</span>
+                </div>
+                <div class="c-tab-icon">
+                  <span class="icon">👤</span>
+                  <span class="lbl">Profile</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="phone-caption">Feed</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; font-size:12px; color:#6B6B6F;">
+        <span>🎨 Purple gradient header</span>
+        <span>🌟 Floating action button</span>
+        <span>🏷️ Color-coded categories</span>
+        <span>☀️ Light background</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleSelect(el) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const choice = el.dataset.choice;
+  const text = el.querySelector('.card-title').textContent;
+  if (window.__superpowers_record) {
+    window.__superpowers_record({ type: 'click', choice, text });
+  }
+}
+</script>
+</body>
+</html>
