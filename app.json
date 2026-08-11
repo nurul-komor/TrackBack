@@ -13,14 +13,19 @@
       "backgroundColor": "#F7F8F9"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.trackback.campus"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#F7F8F9"
       },
-      "package": "com.trackback.campus"
+      "package": "com.trackback.campus",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/icon.png"

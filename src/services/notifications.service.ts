@@ -1,4 +1,3 @@
-import * as Notifications from 'expo-notifications';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import Constants from 'expo-constants';
@@ -6,7 +5,14 @@ import { Platform } from 'react-native';
 
 const notificationsEnabled = process.env.EXPO_PUBLIC_NOTIFICATIONS_ENABLED === 'true';
 
-if (notificationsEnabled) {
+// Remote push notifications require a development build on Android (SDK 53+),
+// and merely loading expo-notifications inside Expo Go logs a warning — so the
+// module is only required outside Expo Go.
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+const Notifications: typeof import('expo-notifications') | null =
+  notificationsEnabled && !isExpoGo ? require('expo-notifications') : null;
+
+if (Notifications) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -17,12 +23,8 @@ if (notificationsEnabled) {
   });
 }
 
-const isExpoGo = Constants.executionEnvironment === 'storeClient';
-
 export const registerForPushNotifications = async (userId: string): Promise<void> => {
-  if (!notificationsEnabled) return;
-  // Remote push notifications require a development build on Android (SDK 53+)
-  if (isExpoGo) return;
+  if (!Notifications) return;
 
   try {
     // Android 13+: channel must exist before the permission prompt appears
