@@ -44,7 +44,7 @@ const uploadChatImage = async (localUri: string, conversationId: string): Promis
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30', '#5AC8FA'];
-const avatarColor = (id: string) => AVATAR_COLORS[(id.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
+const avatarColor = (id?: string) => AVATAR_COLORS[(id?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
 const formatTime = (ts: any): string => {
   if (!ts) return '';

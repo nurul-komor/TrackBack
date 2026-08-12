@@ -29,7 +29,7 @@ const timeAgo = (timestamp: any): string => {
 const getInitial = (id: string) => (id ? id[0].toUpperCase() : 'U');
 
 const AVATAR_COLORS = ['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30', '#5AC8FA'];
-const avatarColor = (id: string) => AVATAR_COLORS[id.charCodeAt(0) % AVATAR_COLORS.length];
+const avatarColor = (id?: string) => AVATAR_COLORS[(id?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
 export const ConversationsScreen = () => {
   const navigation = useNavigation<any>();

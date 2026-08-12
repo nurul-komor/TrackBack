@@ -88,6 +88,8 @@ export const ItemDetailScreen = () => {
       const convId = await getOrCreateConversation(user.uid, currentItem.userId, currentItem.id);
       navigation.navigate('Chat', {
         conversationId: convId,
+        otherUserId: currentItem.userId,
+        itemId: currentItem.id,
         otherUserName: currentItem.userName,
         itemTitle: currentItem.title,
       });
