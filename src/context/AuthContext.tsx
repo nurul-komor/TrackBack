@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
+import { registerForPushNotifications } from '../services/notifications.service';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -40,6 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         }
         setUserProfile(snap.data() as User);
+        // Best-effort: no-ops if disabled/in Expo Go, and never blocks auth state.
+        registerForPushNotifications(firebaseUser.uid).catch(() => {});
       } else {
         setUserProfile(null);
       }

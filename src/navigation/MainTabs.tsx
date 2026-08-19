@@ -21,6 +21,7 @@ import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { MyPostsScreen } from '../screens/profile/MyPostsScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { NotificationsScreen } from '../screens/profile/NotificationsScreen'; // still used in ProfileNavigator
+import { SavedSearchesScreen } from '../screens/profile/SavedSearchesScreen';
 
 const Tab = createBottomTabNavigator();
 const FeedStack = createStackNavigator();
@@ -167,6 +168,7 @@ const ProfileNavigator = () => (
     <ProfileStack.Screen name="MyPosts" component={MyPostsScreen} />
     <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
     <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
+    <ProfileStack.Screen name="SavedSearches" component={SavedSearchesScreen} />
   </ProfileStack.Navigator>
 );
 

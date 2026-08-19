@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase/firestore';
 
 export type ItemType = 'lost' | 'found';
 export type ItemStatus = 'active' | 'resolved';
-export type NotificationType = 'match' | 'message';
+export type NotificationType = 'match' | 'message' | 'search_match';
 
 export interface User {
   uid: string;
@@ -57,4 +57,15 @@ export interface AppNotification {
   itemId: string;
   read: boolean;
   createdAt: Timestamp;
+  matchedKeyword?: string; // only set when type === 'search_match'
+}
+
+export interface SearchHistoryEntry {
+  id: string;
+  userId: string;
+  keyword: string;      // normalized: trim().toLowerCase()
+  category: string;      // never 'All' — required for equality matching
+  keywords: string[];    // extractKeywords(keyword); length >= 2 required to save
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
   View, ScrollView, StyleSheet, Image, TouchableOpacity,
-  Alert, Modal, FlatList, TextInput, ActivityIndicator, Text,
+  Alert, TextInput, ActivityIndicator, Text,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { updateDoc, doc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CATEGORIES } from '../../config/categories';
+import { CategoryPickerModal } from '../../components/CategoryPickerModal';
 import { createItem } from '../../services/items.service';
 import { uploadItemImage } from '../../services/storage.service';
 import { useAuth } from '../../context/AuthContext';
@@ -278,42 +278,12 @@ export const PostItemScreen = () => {
         </View>
 
         {/* Category Modal */}
-        <Modal
+        <CategoryPickerModal
           visible={categoryModalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setCategoryModalVisible(false)}
-        >
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setCategoryModalVisible(false)}
-          >
-            <View style={styles.modalSheet}>
-              <View style={styles.modalHandle} />
-              <Text style={styles.modalTitle}>Select Category</Text>
-              <FlatList
-                data={CATEGORIES as unknown as string[]}
-                keyExtractor={(item) => item}
-                renderItem={({ item: cat }) => (
-                  <TouchableOpacity
-                    style={styles.categoryItem}
-                    onPress={() => { setCategory(cat); setCategoryModalVisible(false); }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.categoryItemText, category === cat && styles.categoryItemActiveText]}>
-                      {cat}
-                    </Text>
-                    {category === cat && (
-                      <MaterialCommunityIcons name="check" size={18} color={COLORS.primary} />
-                    )}
-                  </TouchableOpacity>
-                )}
-                ItemSeparatorComponent={() => <View style={styles.modalDivider} />}
-              />
-            </View>
-          </TouchableOpacity>
-        </Modal>
+          selected={category}
+          onSelect={(cat) => { setCategory(cat); setCategoryModalVisible(false); }}
+          onClose={() => setCategoryModalVisible(false)}
+        />
       </ScrollView>
     </View>
   );
@@ -495,53 +465,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
-  },
-
-  // Category modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    paddingTop: 12,
-    maxHeight: '70%',
-  },
-  modalHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.separator,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 12,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-  },
-  categoryItemText: {
-    fontSize: 16,
-    color: COLORS.textPrimary,
-  },
-  categoryItemActiveText: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  modalDivider: {
-    height: 0.5,
-    backgroundColor: COLORS.background,
   },
 });

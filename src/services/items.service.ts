@@ -1,10 +1,11 @@
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc,
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc,
   query, where, orderBy, getDocs, serverTimestamp, Timestamp, writeBatch,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Item, ItemType, ItemStatus } from '../types';
 import { extractKeywords } from './matching.service';
+import { notifySearchMatches } from './searchHistory.service';
 
 export const createItem = async (
   data: Omit<Item, 'id' | 'keywords' | 'createdAt' | 'updatedAt'>,
@@ -17,6 +18,12 @@ export const createItem = async (
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  // Fire-and-forget: never let saved-search matching block or fail the post flow.
+  notifySearchMatches({
+    id: ref.id, title: data.title, category: data.category, userId: data.userId, keywords,
+  }).catch(() => {});
+
   return ref.id;
 };
 
@@ -26,6 +33,11 @@ export const getItems = async (type?: ItemType): Promise<Item[]> => {
   constraints.unshift(where('status', '==', 'active'));
   const snap = await getDocs(query(collection(db, 'items'), ...constraints));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Item));
+};
+
+export const getItemById = async (itemId: string): Promise<Item | null> => {
+  const snap = await getDoc(doc(db, 'items', itemId));
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Item) : null;
 };
 
 export const getUserItems = async (userId: string): Promise<Item[]> => {

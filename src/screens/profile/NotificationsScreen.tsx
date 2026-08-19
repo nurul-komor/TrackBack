@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -17,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { getItemById } from '../../services/items.service';
 import { AppNotification } from '../../types';
 import { COLORS } from '../../theme/theme';
 
@@ -66,11 +68,15 @@ export const NotificationsScreen = () => {
   const markRead = (notifId: string) =>
     updateDoc(doc(db, 'notifications', notifId), { read: true });
 
-  const handleTap = (notif: AppNotification) => {
+  const handleTap = async (notif: AppNotification) => {
     if (!notif.read) markRead(notif.id);
-    if (notif.itemId) {
-      navigation.navigate('Feed', { screen: 'ItemDetail', params: { itemId: notif.itemId } });
+    if (!notif.itemId) return;
+    const item = await getItemById(notif.itemId);
+    if (!item) {
+      Alert.alert('Item unavailable', 'This item may have been removed.');
+      return;
     }
+    navigation.navigate('FeedTab', { screen: 'ItemDetail', params: { item } });
   };
 
   if (loading) {
@@ -100,7 +106,8 @@ export const NotificationsScreen = () => {
           <Text style={styles.emptyIcon}>🔔</Text>
           <Text style={styles.emptyTitle}>No notifications yet</Text>
           <Text style={styles.emptySubtitle}>
-            You'll be notified when someone matches your lost or found item.
+            You'll be notified when someone matches your lost or found item, or posts
+            something matching one of your saved searches.
           </Text>
         </View>
       ) : (
@@ -121,7 +128,11 @@ export const NotificationsScreen = () => {
                 { backgroundColor: '#F2F2F7' },
               ]}>
                 <MaterialCommunityIcons
-                  name={item.type === 'match' ? 'magnify' : 'chat-outline'}
+                  name={
+                    item.type === 'search_match' ? 'bell-alert-outline'
+                    : item.type === 'match' ? 'magnify'
+                    : 'chat-outline'
+                  }
                   size={20}
                   color={COLORS.textSecondary}
                 />

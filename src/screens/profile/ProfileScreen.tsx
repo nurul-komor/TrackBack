@@ -73,6 +73,12 @@ export const ProfileScreen = () => {
       onPress: () => navigation.navigate('Notifications'),
     },
     {
+      key: 'savedSearches',
+      icon: 'magnify',
+      title: 'Saved Searches',
+      onPress: () => navigation.navigate('SavedSearches'),
+    },
+    {
       key: 'logout',
       icon: 'logout',
       title: 'Logout',

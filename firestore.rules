@@ -25,11 +25,51 @@ service cloud.firestore {
       }
     }
 
+    match /searchHistory/{entryId} {
+      // Any signed-in user can read all saved searches — required so a poster's own
+      // client can find other users' matching alerts with no backend. Known trade-off:
+      // this exposes what each user is searching for, tied to their uid.
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == request.resource.data.userId
+        && request.resource.data.keyword is string && request.resource.data.keyword.size() <= 60
+        && request.resource.data.category is string && request.resource.data.category.size() <= 40
+        && request.resource.data.keywords is list && request.resource.data.keywords.size() <= 20;
+      allow update: if request.auth.uid == resource.data.userId
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.category == resource.data.category
+        && request.resource.data.keyword == resource.data.keyword;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
     match /notifications/{notifId} {
-      // create: check userId in the incoming data
-      allow create: if request.auth.uid == request.resource.data.userId;
+      allow create: if isOwnNotification() || isSearchMatchNotification();
       // read/update/delete: check userId in the existing document
       allow read, update, delete: if request.auth.uid == resource.data.userId;
+    }
+
+    function isOwnNotification() {
+      return request.auth.uid == request.resource.data.userId;
+    }
+
+    // Narrowest practical relaxation letting one user's client notify another user
+    // about a matching saved search, with no backend. Known trade-off: not spoof-proof
+    // — any authenticated client could forge a 'search_match' notification for any
+    // user referencing any real item, since there's no server to verify a genuine
+    // match occurred. Accepted per the no-Cloud-Functions constraint.
+    function isSearchMatchNotification() {
+      return request.auth != null
+        && request.resource.data.type == 'search_match'
+        && request.resource.data.userId is string
+        && request.resource.data.userId != request.auth.uid
+        && request.resource.data.itemId is string
+        && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId))
+        && request.resource.data.title is string && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string && request.resource.data.body.size() <= 300
+        && request.resource.data.read == false
+        && (!('matchedKeyword' in request.resource.data) || request.resource.data.matchedKeyword is string)
+        && request.resource.data.keys().hasOnly(
+             ['userId', 'type', 'title', 'body', 'itemId', 'read', 'createdAt', 'matchedKeyword']
+           );
     }
   }
 }
